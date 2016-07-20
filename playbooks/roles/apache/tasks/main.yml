@@ -1,0 +1,4 @@
+# Apache playbook tasks
+- name: Install Apache
+  apt: name=apache2 state=latest
+  
