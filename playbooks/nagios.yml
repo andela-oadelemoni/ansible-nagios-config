@@ -1,10 +1,10 @@
---- # Playbook to configure mysql 
+--- # Playbook to configure nagios 
 - hosts: "{{host}}"
   remote_user: "{{user}}"
   become: yes
   become_method: sudo
+  gather_facts: yes
   vars_files:
   - config_vars.yml
   roles:
-  - common
-  - mysql
+  - nagios 

@@ -1,0 +1,50 @@
+- name: Create nagcmd group
+  group: name=nagcmd state=present
+
+- name: Create nagios user and add to the nagcmd group
+  user: name=nagios state=present group=nagcmd
+
+- name: Install required packages needed to run nagios
+  apt: name="{{ item }}" state=latest
+  with_items:
+  - build-essential
+  - libgd2-xpm-dev
+  - openssl
+  - libssl-dev
+  - xinetd
+  - apache2-utils
+  - unzip
+
+######### NAGIOS CORE ############
+- name: Download and Extract downloaded nagios core file
+  unarchive: src=https://assets.nagios.com/downloads/nagioscore/releases/{{ nagios }}.tar.gz dest={{ ansible_env.HOME }} copy=no
+
+- name: Run nagios installation in the nagios directory
+  command: "{{ item }}"
+  with_items:
+  - ./configure --with-nagios-group=nagios --with-command-group=nagcmd
+  - make all
+  - make install
+  - make install-commandmode
+  - make install-init
+  - make install-config
+  - /usr/bin/install -c -m 644 sample-config/httpd.conf /etc/apache2/sites-available/nagios.conf
+  args:
+    chdir: "{{ ansible_env.HOME}}/{{ nagios }}"
+
+- name: Add web server user to nagcmd group
+  user: name=www-data groups=nagcmd append=yes
+
+######### NAGIOS PLUGIN ############
+- name: Download and Extract Nagios Plugin
+  unarchive: src=http://nagios-plugins.org/download/{{ nagios_plugin }}.tar.gz dest={{ ansible_env.HOME }} copy=no
+
+- name: Run nagios plugin in the nagios plugin directory
+  command: "{{ item }}"
+  with_items:
+  - ./configure --with-nagios-user=nagios --with-nagios-group=nagios --with-openssl
+  - make
+  - sudo make install
+  args:
+    chdir: "{{ ansible_env.HOME }}/{{ nagios_plugin }}"
+

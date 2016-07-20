@@ -1,0 +1,32 @@
+# Install Apache
+- name: Install Apache
+  apt: name=apache2 state=latest
+  tags:
+    - apache
+
+# Install MySQL
+- name: Install MySQL
+  apt: name={{ item }} state=latest
+  with_items:
+    - mysql-server
+    - php5-mysql
+  tags:
+    - mysql
+
+# Install PHP
+- name: Install PHP
+  apt: name={{ item }} state=latest
+  with_items:
+    - php5
+    - libapache2-mod-php5
+    - php5-mcrypt
+  register: result
+  tags:
+    - php
+
+- name: Set index.php as priority
+  template: src=dir.conf dest=/etc/apache2/mods-enabled/dir.conf mode=0644
+  when: result|success
+  tags:
+    - php
+

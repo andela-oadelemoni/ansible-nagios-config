@@ -1,4 +1,4 @@
---- # Playbook to configure apache
+--- # Playbook to configure LAMP for nagios 
 - hosts: "{{host}}"
   remote_user: "{{user}}"
   become: yes
@@ -7,4 +7,4 @@
   - config_vars.yml
   roles:
   - common
-  - apache
+  - lamp

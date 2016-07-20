@@ -1,3 +1,5 @@
 # playbook variables
 host: vagrant
 user: vagrant
+nagios: nagios-4.1.1
+nagios_plugin: nagios-plugins-2.1.1

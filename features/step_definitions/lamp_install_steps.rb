@@ -10,12 +10,16 @@ end
 # Provision the server
 And(/^I provision it$/) do
 	output, error, status = Open3.capture3 "vagrant provision"
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'common'"
+
+	common_output, common_error, common_status = Open3.capture3 "#{command}"
 	expect(status.success?).to eq(true)
+	expect(common_status.success?).to eq(true)
 end
 
 # Apache scenario
 When(/^I install Apache$/) do
-	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/apache.yml"
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'apache'"
 
 	output, error, @status = Open3.capture3 "#{command}"
 end
@@ -41,7 +45,7 @@ end
 
 # MySQL Scenario
 When(/^I install MySQL$/) do
-	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/mysql.yml"
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'mysql'"
 
 	output, error, @status = Open3.capture3 "#{command}"
 end
@@ -55,7 +59,7 @@ And(/^MySQL should be running$/) do
 end
 
 When(/^I install PHP$/) do
-	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/php.yml"
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'php'"
 	output, error, @status = Open3.capture3 "#{command}"
 end
 
