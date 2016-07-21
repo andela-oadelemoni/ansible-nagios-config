@@ -8,3 +8,8 @@
   apt: upgrade=dist force=yes
   tags:
     - common
+
+- name: Install python-passlib library
+  apt: name=python-passlib state=latest
+  tags:
+    - common
