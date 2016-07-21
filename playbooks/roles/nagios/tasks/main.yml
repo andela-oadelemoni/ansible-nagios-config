@@ -107,11 +107,12 @@
 - name: Expose servers directory in nagios config
   blockinfile:
     dest: /usr/local/nagios/etc/nagios.cfg
-    marker: "# ANSIBLE SERVERS BLOCK CONFIGURATION"
+    marker: "#{mark} SERVERS BLOCK CONFIGURATION"
     insertafter: "#cfg_dir=/usr/local/nagios/etc/servers"
     block: "cfg_dir=/usr/local/nagios/etc/servers"
   tags:
     - nagios_configure
+    - test
 
 - name: Create servers directory to contain server to be monitored
   file: path=/usr/local/nagios/etc/servers state=directory mode=0644
@@ -127,7 +128,7 @@
 - name: Add CHECK_NRPE command
   blockinfile:
     dest: /usr/local/nagios/etc/objects/commands.cfg
-    marker: "# ANSIBLE CHECK_NRPE BLOCK CONFIGURATION"
+    marker: "#{mark} NRPE COMMAND CONFIGURATION"
     block: |
       define command{
               command_name check_nrpe
@@ -135,6 +136,7 @@
       }
   tags:
     - nagios_configure
+    - test
 
 ######### CONFIGURE APACHE REWRITE AND CGI MODULES ############
 - name: Configure Apache rewrite and CGI module
