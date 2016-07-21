@@ -7,13 +7,13 @@ Feature: Setup LAMP as Nagios Prerequisite
 	Scenario:
 		When I install Apache
 		Then it should be successful
-		And Apache should be running
+		And apache2 should be running
 		And it should be accepting connections on port 80
 
 	Scenario:
 		When I install MySQL
 		Then it should be successful
-		And MySQL should be running
+		And mysql should be running
 		And it should be accepting connections on port 3306
 
 	Scenario:

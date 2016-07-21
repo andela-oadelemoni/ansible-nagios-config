@@ -1,8 +1,12 @@
 - name: Create nagcmd group
   group: name=nagcmd state=present
+  tags:
+    - provision
 
 - name: Create nagios user and add to the nagcmd group
   user: name=nagios state=present groups=nagcmd append=yes
+  tags:
+    - provision
 
 - name: Install required packages needed to run nagios
   apt: name="{{ item }}" state=latest
@@ -14,10 +18,14 @@
     - xinetd
     - apache2-utils
     - unzip
+  tags:
+    - provision
 
 ######### NAGIOS CORE ############
 - name: Download and Extract nagios core file
   unarchive: src=https://assets.nagios.com/downloads/nagioscore/releases/{{ nagios }}.tar.gz dest={{ ansible_env.PWD }} copy=no
+  tags:
+    - nagios_core
 
 - name: Run nagios installation in the nagios directory
   command: "{{ item }}"
@@ -32,13 +40,19 @@
     - /usr/bin/install -c -m 644 sample-config/httpd.conf /etc/apache2/sites-available/nagios.conf
   args:
     chdir: "{{ ansible_env.PWD}}/{{ nagios }}"
+  tags:
+    - nagios_core
 
 - name: Add web server user to nagcmd group
   user: name=www-data groups=nagcmd append=yes
+  tags:
+    - nagios_core
 
 ######### NAGIOS PLUGIN ############
 - name: Download and Extract Nagios Plugin
   unarchive: src=http://nagios-plugins.org/download/{{ nagios_plugin }}.tar.gz dest={{ ansible_env.PWD }} copy=no
+  tags:
+    - nagios_plugin
 
 - name: Run nagios plugin in the nagios plugin directory
   command: "{{ item }}"
@@ -48,6 +62,8 @@
     - make install
   args:
     chdir: "{{ ansible_env.PWD }}/{{ nagios_plugin }}"
+  tags:
+    - nagios_plugin
 
 ######### NRPE ############
 - name: Download and Extract NRPE
@@ -72,14 +88,20 @@
 - name: Get Private IP address
   raw: "ifconfig | grep 'inet addr' | sed 's/inet addr://g' | head -n1 | awk '{print $1}'"
   register: ip_address
+  tags:
+    - nrpe
 
 - debug: msg={{ ip_address }}
 
 - name: Add IP address of server to be monitored
   template: src=nrpe.j2 dest=/etc/xinetd.d/nrpe mode=0644
+  tags:
+    - nrpe
 
 - name: Restart xinetd and NRPE
   service: name=xinetd state=restarted
+  tags:
+    - nrpe
 
 ######### CONFIGURE NAGIOS ############
 - name: Expose servers directory in nagios config
@@ -88,12 +110,18 @@
     marker: "# ANSIBLE SERVERS BLOCK CONFIGURATION"
     insertafter: "#cfg_dir=/usr/local/nagios/etc/servers"
     block: "cfg_dir=/usr/local/nagios/etc/servers"
+  tags:
+    - nagios_configure
 
 - name: Create servers directory to contain server to be monitored
   file: path=/usr/local/nagios/etc/servers state=directory mode=0644
+  tags:
+    - nagios_configure
 
 - name: Configure Nagios Contacts
   lineinfile: dest=/usr/local/nagios/etc/objects/contacts.cfg regexp='email' line='email {{ email }}' state=present
+  tags:
+    - nagios_configure
 
 ######### CONFIGURE CHECK_NRPE ############
 - name: Add CHECK_NRPE command
@@ -105,6 +133,8 @@
               command_name check_nrpe
               command_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$
       }
+  tags:
+    - nagios_configure
 
 ######### CONFIGURE APACHE REWRITE AND CGI MODULES ############
 - name: Configure Apache rewrite and CGI module
@@ -112,21 +142,27 @@
   with_items:
     - a2enmod rewrite
     - a2enmod cgi
+  tags:
+    - apache_configure
 
 - name: Create nagios admin user and password
   htpasswd: path=/usr/local/nagios/etc/htpasswd.users name=nagiosadmin password={{ nagios_password }}
   tags:
-    - password
+    - apache_configure
 
 - name: Create symbolic link of nagios.conf to sites-enabled directory and allow nagios to start automatically
   command: "{{ item }}"
   with_items:
     - ln -s /etc/apache2/sites-available/nagios.conf /etc/apache2/sites-enabled/
     - ln -s /etc/init.d/nagios /etc/rcS.d/S99nagios
+  tags:
+    - apache_configure
 
 - name: Restart all services
   service: name={{ item }} state=restarted
   with_items:
     - nagios
     - apache2
+  tags:
+    - apache_configure
 

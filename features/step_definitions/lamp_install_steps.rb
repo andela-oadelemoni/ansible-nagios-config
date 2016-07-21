@@ -28,12 +28,23 @@ Then(/^it should be successful$/) do
 	expect(@status.success?).to eq(true)
 end
 
-And(/^Apache should be running$/) do
-	command = "vagrant ssh -c 'sudo service apache2 status'"
-	output, error, status = Open3.capture3 "#{command}"
+And(/^([^"]*) should be running$/) do |service|
+	case service
+  when 'mysql', 'xinetd'
+    output, error, status = Open3.capture3 "vagrant ssh -c 'sudo service #{service} status'"
+    expect(status.success?).to eq(true)
 
-	expect(status.success?).to eq(true)
-  expect(output).to match("apache2 is running")
+    puts output
+    expect(output).to match("#{service} start/running")
+  when 'apache2', 'nagios'
+    output, error, status = Open3.capture3 "vagrant ssh -c 'sudo service #{service} status'"
+    expect(status.success?).to eq(true)
+
+    puts output
+    expect(output).to match("is running")
+  else
+    raise 'Not Implemented'
+  end
 end
 
 And(/^it should be accepting connections on port ([^"]*)$/) do |port|
