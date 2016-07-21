@@ -112,7 +112,6 @@
     block: "cfg_dir=/usr/local/nagios/etc/servers"
   tags:
     - nagios_configure
-    - test
 
 - name: Create servers directory to contain server to be monitored
   file: path=/usr/local/nagios/etc/servers state=directory mode=0644
@@ -136,7 +135,6 @@
       }
   tags:
     - nagios_configure
-    - test
 
 ######### CONFIGURE APACHE REWRITE AND CGI MODULES ############
 - name: Configure Apache rewrite and CGI module
@@ -153,12 +151,12 @@
     - apache_configure
 
 - name: Create symbolic link of nagios.conf to sites-enabled directory and allow nagios to start automatically
-  command: "{{ item }}"
+  file: src={{ item.src }} dest={{ item.dest }} state=link force=yes
   with_items:
-    - ln -s /etc/apache2/sites-available/nagios.conf /etc/apache2/sites-enabled/
-    - ln -s /etc/init.d/nagios /etc/rcS.d/S99nagios
+   - { src: '/etc/apache2/sites-available/nagios.conf', dest: '/etc/apache2/sites-enabled/nagios.conf' }
+   - { src: '/etc/init.d/nagios', dest: '/etc/rcS.d/S99nagios' }
   tags:
-    - apache_configure
+   - apache_configure
 
 - name: Restart all services
   service: name={{ item }} state=restarted
