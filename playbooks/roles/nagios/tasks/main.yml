@@ -91,7 +91,11 @@
   tags:
     - nrpe
 
-- debug: msg={{ ip_address }}
+- name: Define ip address variable
+  set_fact:
+    private_ip: "{{ ip_address.stdout_lines[1] }}"
+  tags:
+    - nrpe
 
 - name: Add IP address of server to be monitored
   template: src=nrpe.j2 dest=/etc/xinetd.d/nrpe mode=0644

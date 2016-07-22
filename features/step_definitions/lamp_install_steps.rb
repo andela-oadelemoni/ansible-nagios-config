@@ -10,11 +10,14 @@ end
 # Provision the server
 And(/^I provision it$/) do
 	output, error, status = Open3.capture3 "vagrant provision"
-	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'common'"
 
-	common_output, common_error, common_status = Open3.capture3 "#{command}"
 	expect(status.success?).to eq(true)
-	expect(common_status.success?).to eq(true)
+end
+
+When(/^I install dependencies$/) do
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/lamp.yml --tags 'common'"
+	
+	output, error, @status = Open3.capture3 "#{command}"
 end
 
 # Apache scenario

@@ -40,7 +40,7 @@ When(/^I configure nagios$/) do
 end
 
 When(/^I configure apache$/) do
-	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/nagios.yml --tags 'nagios_configure'"
+	command = "ansible-playbook -i hosts --private-key=.vagrant/machines/default/virtualbox/private_key playbooks/nagios.yml --tags 'apache_configure'"
 
 	output, error, @status = Open3.capture3 "#{command}"
 end
