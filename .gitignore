@@ -1,3 +1,5 @@
-tasklist
 .vagrant/
 playbooks/*.retry
+features/step_definitions/vars.rb
+hosts
+playbooks/config_vars.yml
