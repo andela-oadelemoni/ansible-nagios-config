@@ -67,7 +67,7 @@
 
 ######### NRPE ############
 - name: Download and Extract NRPE
-  unarchive: src=http://downloads.sourceforge.net/project/nagios/nrpe-2.x/{{ nrpe }}/{{ nrpe }}.tar.gz dest={{ ansible_env.PWD }} copy=no
+  unarchive: src=https://github.com/NagiosEnterprises/nrpe/archive/{{ nrpe }}.tar.gz dest={{ ansible_env.PWD }} copy=no
   tags:
     - nrpe
 
@@ -81,7 +81,7 @@
     - make install-xinetd
     - make install-daemon-config
   args:
-    chdir: "{{ ansible_env.PWD }}/{{ nrpe }}"
+    chdir: "{{ ansible_env.PWD }}/nrpe-nrpe-2-15"
   tags:
     - nrpe
 
@@ -93,7 +93,7 @@
 
 - name: Define ip address variable
   set_fact:
-    private_ip: "{{ ip_address.stdout_lines[1] }}"
+    private_ip: "{{ ip_address.stdout_lines[0] }}"
   tags:
     - nrpe
 

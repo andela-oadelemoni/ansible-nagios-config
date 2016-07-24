@@ -1,15 +1,6 @@
 require 'open3'
 require_relative 'vars'
 
-# Nagios scenario
-When(/^I install nagios$/) do
-	command = "ansible-playbook -i hosts --private-key=#{PATH_TO_PRIVATE_KEY} playbooks/nagios.yml"
-
-	output, error, @status = Open3.capture3 "#{command}"
-	puts output
-	puts error
-end
-
 When(/^I install requirements$/) do
 	command = "ansible-playbook -i hosts --private-key=#{PATH_TO_PRIVATE_KEY} playbooks/nagios.yml --tags 'provision'"
 
