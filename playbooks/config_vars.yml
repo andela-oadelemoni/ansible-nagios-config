@@ -1,10 +1,10 @@
 # playbook variables
-host: vagrant
-user: vagrant
+host: 
+user: 
 
 nagios: nagios-4.1.1
 nagios_plugin: nagios-plugins-2.1.1
 nrpe: nrpe-2.15
 
-email: kamiye@tinweb.com.ng
-nagios_password: nagios
+email: 
+nagios_password: 
