@@ -18,6 +18,7 @@ user: username # ssh user
 
 nagios: nagios-4.1.1 # nagios core version
 nagios_plugin: nagios-plugins-2.1.1 # nagios plugin version
+install_nagios_plugin: true # set this to false if you do not want default nagios plugins installed
 nrpe: nrpe-2.15 # nrpe version
 
 email: example@email.com # email address
