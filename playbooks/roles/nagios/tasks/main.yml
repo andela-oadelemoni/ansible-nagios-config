@@ -22,90 +22,16 @@
     - provision
 
 ######### NAGIOS CORE ############
-- name: Download and Extract nagios core file
-  unarchive: src=https://assets.nagios.com/downloads/nagioscore/releases/{{ nagios }}.tar.gz dest={{ ansible_env.PWD }} copy=no
-  tags:
-    - nagios_core
 
-- name: Run nagios installation in the nagios directory
-  command: "{{ item }}"
-  with_items:
-    - ./configure --with-nagios-group=nagios --with-command-group=nagcmd
-    - make clean
-    - make all
-    - make install
-    - make install-commandmode
-    - make install-init
-    - make install-config
-    - /usr/bin/install -c -m 644 sample-config/httpd.conf /etc/apache2/sites-available/nagios.conf
-  args:
-    chdir: "{{ ansible_env.PWD}}/{{ nagios }}"
-  tags:
-    - nagios_core
-
-- name: Add web server user to nagcmd group
-  user: name=www-data groups=nagcmd append=yes
-  tags:
-    - nagios_core
+- include: nagios_core.yml
 
 ######### NAGIOS PLUGIN ############
-- name: Download and Extract Nagios Plugin
-  unarchive: src=http://nagios-plugins.org/download/{{ nagios_plugin }}.tar.gz dest={{ ansible_env.PWD }} copy=no
-  tags:
-    - nagios_plugin
 
-- name: Run nagios plugin in the nagios plugin directory
-  command: "{{ item }}"
-  with_items:
-    - ./configure --with-nagios-user=nagios --with-nagios-group=nagios --with-openssl
-    - make
-    - make install
-  args:
-    chdir: "{{ ansible_env.PWD }}/{{ nagios_plugin }}"
-  tags:
-    - nagios_plugin
+- include: nagios_plugin.yml
 
 ######### NRPE ############
-- name: Download and Extract NRPE
-  unarchive: src=https://github.com/NagiosEnterprises/nrpe/archive/{{ nrpe }}.tar.gz dest={{ ansible_env.PWD }} copy=no
-  tags:
-    - nrpe
 
-- name: Run nagios plugin in the nagios plugin directory
-  command: "{{ item }}"
-  with_items:
-    - ./configure --enable-command-args --with-nagios-user=nagios --with-nagios-group=nagios --with-ssl=/usr/bin/openssl --with-ssl-lib=/usr/lib/x86_64-linux-gnu
-    - make clean
-    - make all
-    - make install
-    - make install-xinetd
-    - make install-daemon-config
-  args:
-    chdir: "{{ ansible_env.PWD }}/nrpe-nrpe-2-15"
-  tags:
-    - nrpe
-
-- name: Get Private IP address
-  raw: "ifconfig | grep 'inet addr' | sed 's/inet addr://g' | head -n1 | awk '{print $1}'"
-  register: ip_address
-  tags:
-    - nrpe
-
-- name: Define ip address variable
-  set_fact:
-    private_ip: "{{ ip_address.stdout_lines[0] }}"
-  tags:
-    - nrpe
-
-- name: Add IP address of server to be monitored
-  template: src=nrpe.j2 dest=/etc/xinetd.d/nrpe mode=0644
-  tags:
-    - nrpe
-
-- name: Restart xinetd and NRPE
-  service: name=xinetd state=restarted
-  tags:
-    - nrpe
+- include: nrpe.yml
 
 ######### CONFIGURE NAGIOS ############
 - name: Expose servers directory in nagios config
@@ -141,11 +67,29 @@
     - nagios_configure
 
 ######### CONFIGURE APACHE REWRITE AND CGI MODULES ############
-- name: Configure Apache rewrite and CGI module
-  command: "{{ item }}"
-  with_items:
-    - a2enmod rewrite
-    - a2enmod cgi
+- name: Check if required apache modules are enabled
+  command: bash -c "apachectl -M | grep rewrite_module"
+  register: rewrite_enabled
+  ignore_errors: True
+  tags:
+    - apache_configure
+
+- name: Check if required apache modules are enabled
+  command: bash -c "apachectl -M | grep cgi_module"
+  register: cgi_enabled
+  ignore_errors: True
+  tags:
+    - apache_configure
+
+- name: Enagle Apache rewrite module
+  command: bash -c "a2enmod rewrite"
+  when: rewrite_enabled|failed
+  tags:
+    - apache_configure
+
+- name: Enable Apache CGI module
+  command: bash -c "a2enmod cgi"
+  when: cgi_enabled|failed
   tags:
     - apache_configure
 

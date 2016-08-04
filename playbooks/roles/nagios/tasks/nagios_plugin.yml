@@ -1,0 +1,18 @@
+
+- name: Download and Extract Nagios Plugin
+  unarchive: src=http://nagios-plugins.org/download/{{ nagios_plugin }}.tar.gz dest={{ ansible_env.PWD }} copy=no
+  when: install_nagios_plugin
+  tags:
+    - nagios_plugin
+
+- name: Run nagios plugin in the nagios plugin directory
+  command: "{{ item }}"
+  when: install_nagios_plugin
+  with_items:
+    - ./configure --with-nagios-user=nagios --with-nagios-group=nagios --with-openssl
+    - make
+    - make install
+  args:
+    chdir: "{{ ansible_env.PWD }}/{{ nagios_plugin }}"
+  tags:
+    - nagios_plugin

@@ -1,0 +1,52 @@
+- name: Check if NRPE is installed
+  command: bash -c "/usr/local/nagios/bin/nrpe | grep ^Version | awk '{print $2}'"
+  register: nrpe_version
+  tags:
+    - nrpe
+
+- name: Download and Extract NRPE
+  unarchive: src=https://github.com/NagiosEnterprises/nrpe/archive/{{ nrpe }}.tar.gz dest={{ ansible_env.PWD }} copy=no
+  when: nrpe_version.stdout != '2.15'
+  tags:
+    - nrpe
+
+- name: Run NRPE installation the downloaded NRPE directory
+  command: "{{ item }}"
+  when: nrpe_version.stdout != '2.15'
+  with_items:
+    - ./configure --enable-command-args --with-nagios-user=nagios --with-nagios-group=nagios --with-ssl=/usr/bin/openssl --with-ssl-lib=/usr/lib/x86_64-linux-gnu
+    - make clean
+    - make all
+    - make install
+    - make install-xinetd
+    - make install-daemon-config
+  args:
+    chdir: "{{ ansible_env.PWD }}/nrpe-nrpe-2-15"
+  tags:
+    - nrpe
+
+- name: Get Private IP address
+  raw: "ifconfig | grep 'inet addr' | sed 's/inet addr://g' | head -n1 | awk '{print $1}'"
+  when: nrpe_version.stdout != '2.15'
+  register: ip_address
+  tags:
+    - nrpe
+
+- name: Define ip address variable
+  set_fact:
+    private_ip: "{{ ip_address.stdout_lines[0] }}"
+  when: nrpe_version.stdout != '2.15'
+  tags:
+    - nrpe
+
+- name: Add IP address of server to be monitored
+  template: src=nrpe.j2 dest=/etc/xinetd.d/nrpe mode=0644
+  when: nrpe_version.stdout != '2.15'
+  tags:
+    - nrpe
+
+- name: Restart xinetd and NRPE
+  service: name=xinetd state=restarted
+  when: nrpe_version.stdout != '2.15'
+  tags:
+    - nrpe

@@ -4,11 +4,12 @@ Setting up Nagios on your server can be a really long process and you might want
 This script was written for `Ubuntu 14.04.4 LTS` server.
 
 **To get started,**
-###### 1. Open `hosts` file in the project root directory and enter your host name(s) with DNS name or IP address. 
+###### 1. Open `hosts` file in the project root directory and enter your host name(s) with DNS name or IP address. Also enter path to ssh key file
 
 ```
 [hostname]
-# Enter IP Address or DNS name e.g www.example.com
+# Enter IP Address or DNS name e.g www.example.com and path to key file like below:
+# 10.10.10.10 ansible_ssh_private_key_file=<path to key file>
 ```
 ###### 2. Open `config_vars.yml` in playbooks directory and enter the required variables like this:
 ```ruby
@@ -51,11 +52,11 @@ $ cucumber features/install.feature
 
 First:
 ```sh
-$ ansible-playbook -i hosts [--private-key=<path to your server private key> or -k (to enter password in commandline)] playbooks/lamp.yml
+$ ansible-playbook -i hosts playbooks/lamp.yml
 ```
 Second:
 ```sh
-$ ansible-playbook -i hosts [--private-key=<path to your server private key> or -k (to enter password in commandline)] playbooks/nagios.yml
+$ ansible-playbook -i hosts playbooks/nagios.yml
 ```
 
 ***Happy Configuring :)***
